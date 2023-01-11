@@ -1,12 +1,27 @@
 import Image from "next/image";
-import { useRef } from "react";
+import { useRouter } from "next/router";
+import { useRef, useState } from "react";
 
 const EventPage = ({ data }) => {
 
   const emailRef = useRef();
-  const submitHandler = (e) => {
+  const router = useRouter();
+  const [message, setMessage] = useState('');
+
+  const submitHandler = async (e) => {
     e.preventDefault();
-    
+    const eventId = router?.query.id;
+    const response = await fetch('/api/email-registration', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email: emailRef.current.value, eventId })
+    });
+    // if (!response.ok) throw new Error(`Error: ${response.status}`);
+    const data = await response.json();
+    setMessage(data.message);
+    emailRef.current.value = '';
   }
   return (
     <div className="event_single_page">
@@ -16,6 +31,7 @@ const EventPage = ({ data }) => {
       <form onSubmit={submitHandler} className="email_registration">
         <label>Get Registered for this event!</label>
         <input type="email" id="email" ref={emailRef} placeholder="Please insert your email" /> <button type="button">Submit</button>
+        <p style={{ color: "green" }}>{message}</p>
       </form>
     </div>
   );
